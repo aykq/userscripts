@@ -38,7 +38,9 @@ When you stop scrolling, the full-size thumbnails of the videos on screen are fe
 
 ### Looks
 
-The script also changes a few things in YouTube's look. Translucent player overlays become solid, backdrop blur is removed, and the progress bars are plain red: in the player, the watched bars on thumbnails and the loading bar at the top of the page. This is the `opaqueStyle` block near the top of the script. Delete it, along with the `appendChild(opaqueStyle)` line below it, if you only want the autoplay part.
+The progress bars are plain red: in the player, the watched bars on thumbnails and the loading bar at the top of the page.
+
+The script also has a block that makes YouTube's translucent player overlays solid and removes backdrop blur. It is switched off (commented out) by default. To turn it on, open the script, find the comment at the start of the `opaqueStyle` rules and delete it together with the lone closing line below that group of rules.
 
 YouTube changes its page often, so something here may break now and then. If it does, open an issue.
 

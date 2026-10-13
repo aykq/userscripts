@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Stop Autoplay + HQ Thumbnail
 // @namespace    https://github.com/aykq/userscripts
-// @version      1.18
+// @version      1.19
 // @description  Stops YouTube videos from autoplaying and shows a high quality thumbnail until you click. Adds scroll controls for volume (up to 300%), speed (0.25x-8x) and seeking, remembers your video quality, and jumps to chapter starts with a middle click on the progress bar.
 // @author       aykq
 // @license      MIT
@@ -34,9 +34,10 @@
     const opaqueStyle = document.createElement('style');
     opaqueStyle.id = 'yt-stop-autoplay-opaque';
     opaqueStyle.textContent = `
+        /* Opaque overlays and no backdrop blur, off by default. To turn it on, delete this line and the lone closing line below the last rule of this group.
         html { --yt-sys-color-baseline--overlay-background-medium-light: rgb(0,0,0) !important; --yt-sys-color-baseline--overlay-background-medium: rgb(0,0,0) !important; }
-        html, [light] { --yt-frosted-glass-desktop: rgba(255,255,255,1) !important; --yt-spec-red-indicator: #FF0000 !important; }
-        html[dark], [dark] { --yt-frosted-glass-desktop: rgba(15,15,15,1) !important; --yt-spec-red-indicator: #FF0000 !important; }
+        html, [light] { --yt-frosted-glass-desktop: rgba(255,255,255,1) !important; }
+        html[dark], [dark] { --yt-frosted-glass-desktop: rgba(15,15,15,1) !important; }
         * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
         html[dark] #frosted-glass { background-color: rgb(15,15,15) !important; }
         html:not([dark]) #frosted-glass { background-color: rgb(255,255,255) !important; }
@@ -46,6 +47,8 @@
         .ytTooltipContainerPlayerTooltipContentBlurred,
         .ytPlayerOverlayVideoDetailsRendererFrostedGlass { background-color: rgb(0,0,0) !important; }
         .ytChannelAttributionViewModelHost { background-color: rgb(40,40,40) !important; }
+        */
+        html, [light], html[dark], [dark] { --yt-spec-red-indicator: #FF0000 !important; }
         .ytp-play-progress,
         .ytChapteredProgressBarChapteredPlayerBarChapterSeen,
         .ytChapteredProgressBarChapteredPlayerBarFill,

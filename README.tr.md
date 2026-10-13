@@ -38,7 +38,9 @@ Kaydırmayı bıraktığında ekrandaki videoların tam boyutlu küçük resimle
 
 ### Görünüm
 
-Script YouTube'un görünümünde de birkaç şey değiştirir. Yarı saydam oynatıcı katmanları düz renk olur, arka plan bulanıklığı kalkar, ilerleme çubukları düz kırmızıdır: oynatıcıda, küçük resimlerdeki izlendi çubuklarında ve sayfanın üstündeki yükleme çubuğunda. Bu, script'in başındaki `opaqueStyle` bloğudur. Yalnız autoplay kısmını istiyorsan bu bloğu ve hemen altındaki `appendChild(opaqueStyle)` satırını sil.
+İlerleme çubukları düz kırmızıdır: oynatıcıda, küçük resimlerdeki izlendi çubuklarında ve sayfanın üstündeki yükleme çubuğunda.
+
+Script'te ayrıca YouTube'un yarı saydam oynatıcı katmanlarını düz renk yapan ve arka plan bulanıklığını kaldıran bir blok var. Varsayılan olarak kapalı (yorum satırında). Açmak için script'i aç, `opaqueStyle` kurallarının başındaki yorumu bul ve onu, o kural grubunun altındaki tek başına duran kapanış satırıyla birlikte sil.
 
 YouTube sayfasını sık değiştirdiği için bir şey ara sıra bozulabilir. Olursa issue aç.
 

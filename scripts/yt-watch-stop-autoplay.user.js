@@ -21,11 +21,6 @@
     let currentVideoId = null;
     let overlayEl = null;
 
-    const DEBUG = false;
-    function dlog(...args) {
-        if (DEBUG) console.debug('[yt-stop-autoplay]', Math.round(performance.now()), ...args);
-    }
-
     function isMainVideo(el) {
         return el instanceof HTMLMediaElement &&
             (el.closest('#movie_player') || el.closest('#shorts-player') || el.closest('#c4-player'));
@@ -69,21 +64,16 @@
 
     HTMLMediaElement.prototype.play = function (...args) {
         if (isMainVideo(this) && !playAllowed) {
-            dlog('play() override: BLOCKED', 'readyState=', this.readyState, 'currentTime=', this.currentTime);
             return Promise.reject(new DOMException('play() blocked', 'NotAllowedError'));
         }
-        if (isMainVideo(this)) dlog('play() override: ALLOWED (playAllowed=true)');
         return nativePlay.apply(this, args);
     };
 
     document.addEventListener('play', (event) => {
         const target = event.target;
         if (isMainVideo(target) && !playAllowed) {
-            dlog('document play listener: pausing', 'currentTime=', target.currentTime, 'readyState=', target.readyState);
             target.pause();
             if (!isLiveVideo(target)) target.currentTime = 0;
-        } else if (isMainVideo(target)) {
-            dlog('document play listener: NOT pausing (playAllowed=true)');
         }
     }, true);
 
@@ -148,7 +138,6 @@
         overlayEl = overlay;
 
         overlay.addEventListener('click', () => {
-            dlog('overlay click: playAllowed=true');
             playAllowed = true;
             removeOverlay();
 
@@ -184,7 +173,6 @@
         let scanTimer = 0;
         let pending = [];
         let pumping = false;
-        let warmedCount = 0;
 
         const inViewport = (el) => {
             const r = el.getBoundingClientRect();
@@ -206,7 +194,6 @@
             if (!im || (im.naturalWidth === 120 && im.naturalHeight === 90)) {
                 await loadThumb(videoId, 'hqdefault');
             }
-            warmedCount++;
         };
 
         const pump = async () => {
@@ -231,7 +218,6 @@
                 if (id && !warmed.has(id) && inViewport(a)) ids.add(id);
             }
             pending = [...ids];
-            if (pending.length) dlog('thumb preload', { visible: pending.length, warmedSoFar: warmedCount });
             pump();
         };
 
@@ -278,9 +264,7 @@
     function tryEnsureAudioGraph(video) {
         try {
             ensureAudioGraph(video);
-        } catch (e) {
-            dlog('ensureAudioGraph failed, volume boost disabled:', e && e.name);
-        }
+        } catch (e) {}
     }
 
     function syncVolumeFromPlayer(player) {
@@ -291,7 +275,6 @@
         const live = (boostNow > 1 && nativeNow >= 100) ? 100 * boostNow : nativeNow;
 
         if (Math.abs(live - currentVolumePercent) > 1) {
-            dlog('syncVolumeFromPlayer: volume changed externally', currentVolumePercent, '->', live);
             currentVolumePercent = live;
         }
     }
@@ -325,8 +308,7 @@
         try {
             video.pause();
             if (!isLiveVideo(video)) video.currentTime = 0;
-        } catch (e) {
-        }
+        } catch (e) {}
     }
 
     const QUALITY_STORAGE_KEY = 'ytStopAutoplay_forcedQuality';
@@ -347,15 +329,13 @@
     function setStoredQuality(quality) {
         try {
             localStorage.setItem(QUALITY_STORAGE_KEY, quality);
-        } catch (e) {
-        }
+        } catch (e) {}
     }
 
     function clearStoredQuality() {
         try {
             localStorage.removeItem(QUALITY_STORAGE_KEY);
-        } catch (e) {
-        }
+        } catch (e) {}
     }
 
     function pickQuality(stored, available) {
@@ -376,7 +356,6 @@
         const target = pickQuality(stored, available);
         if (!target) return;
 
-        dlog('forceStoredQuality:', stored, '->', target);
         player.setPlaybackQualityRange(target, target);
     }
 
@@ -386,10 +365,8 @@
         const height = /^\s*(\d{3,4})p/.exec(item.textContent || '')?.[1];
         const quality = height && QUALITY_BY_HEIGHT[height];
         if (quality) {
-            dlog('quality picked from menu, saving:', quality);
             setStoredQuality(quality);
         } else {
-            dlog('Auto quality picked from menu, clearing saved quality');
             clearStoredQuality();
         }
     }, true);
@@ -433,7 +410,6 @@
         if (typeof live !== 'number' || Number.isNaN(live) || live <= 0) return;
 
         if (Math.abs(live - desiredPlaybackRate) > 0.01) {
-            dlog('syncPlaybackRateFromVideo: speed changed externally', desiredPlaybackRate, '->', live);
             desiredPlaybackRate = live;
         }
     }
@@ -637,13 +613,10 @@
         const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
         const time = ratio * player.getDuration();
         const start = starts.filter((s) => s <= time).pop() ?? 0;
-        dlog('chapter middle-click:', { time, start });
         player.seekTo(start, true);
     }, { capture: true });
 
     function handleVideoChange() {
-        dlog('handleVideoChange called', 'currentVideoId=', currentVideoId);
-
         const waitForPlayer = setInterval(() => {
             const active = findActivePlayer();
             if (!active || active.videoId === currentVideoId) return;
@@ -652,10 +625,8 @@
             currentVideoId = active.videoId;
             playAllowed = false;
             const { player, video, videoId } = active;
-            dlog('handleVideoChange: new video found', 'videoId=', videoId, 'video.paused=', video.paused, 'video.currentTime=', video.currentTime);
             stopCurrentVideo(video);
             showOverlay(player, videoId);
-            dlog('showOverlay called');
             forceStoredQuality(player);
             setTimeout(() => forceStoredQuality(player), 800);
             currentVolumePercent = Math.min(100, player.getVolume());
@@ -674,7 +645,6 @@
     }
 
     document.addEventListener('yt-navigate-start', () => {
-        dlog('yt-navigate-start: playAllowed=false');
         playAllowed = false;
     });
     document.addEventListener('yt-navigate-finish', handleVideoChange);

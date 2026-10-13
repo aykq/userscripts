@@ -2,42 +2,45 @@
 
 [English](README.md)
 
-Tarayıcı için küçük userscript'ler. Her script [`scripts/`](scripts) altında tek bir dosyadır.
-
-## Kurulum
-
-[Violentmonkey](https://violentmonkey.github.io/) ya da [Tampermonkey](https://www.tampermonkey.net/) gibi bir userscript yöneticisi gerekir. Aşağıdaki kurulum bağlantısına tıklayıp açılan pencerede kurulumu onaylaman yeterli. Güncellemeler otomatik gelir.
-
-| Script | Kurulum |
-| --- | --- |
-| YouTube Stop Autoplay + HQ Thumbnail | [Kur](https://raw.githubusercontent.com/aykq/userscripts/main/scripts/yt-watch-stop-autoplay.user.js) |
+Userscript'lerim. Şimdilik bir tane var.
 
 ## YouTube Stop Autoplay + HQ Thumbnail
 
-İzleme sayfalarında, Shorts'ta ve kanal sayfalarında videolar kendiliğinden başlamaz. Yerine yüksek kaliteli bir küçük resim gösterilir ve video, resme tıklayınca başlar. Video kendi kendine hiç başlamadığı için, sen tıklayana kadar izleme geçmişine eklenmez.
+[Kur](https://raw.githubusercontent.com/aykq/userscripts/main/scripts/yt-watch-stop-autoplay.user.js)
 
-**Scroll kontrolleri** (yalnız video oynarken çalışır, duraklatılmış videoda sayfa normal kayar). Oynatıcının üst üçte ikisi üç sütuna bölünür:
+[Violentmonkey](https://violentmonkey.github.io/) ya da [Tampermonkey](https://www.tampermonkey.net/) lazım. Bağlantıya tıkla, açılan pencerede kurulumu onayla; sonrasında kendini günceller.
 
-| Sütun | Scroll | Tıklama |
-| --- | --- | --- |
-| Sol | Oynatma hızı, 0,25x ile 8x arası, 0,25x adımlarla | Hızı 1x'e sıfırla |
-| Orta | 5 saniye ileri veya geri sar | Oynat veya duraklat |
-| Sağ | Ses, %0 ile %300 arası, %5 adımlarla | |
+YouTube bir izleme sayfasını, Shorts'u ya da kanal sayfasını açtığında videoyu kendi başlatır, playlist'te de sıradakine kendi geçer. Bu script bunu durdurur. Oynatıcıda videonun küçük resmi tam kalitede görünür, video sen tıklayınca başlar. Önerilen bir videoya tıkladığında da aynısı olur, sıradaki video da tıklamanı bekler. Hiçbir şey kendi kendine oynamadığı için izleme geçmişine de kendi kendine bir şey düşmez. Ana sayfada ve aramada üzerine gelince açılan önizlemelere dokunulmaz. Canlı yayında tıklama, DVR penceresinin başına değil canlı yayının ucuna götürür.
 
-%100 üzerindeki ses için Web Audio API ile güçlendirme yapılır.
+### Scroll kontrolleri
 
-**Diğer özellikler**
+İmleç videonun üzerindeyken scroll yap. Oynatıcı üç sütuna bölünür ve yalnız üstteki üçte ikilik kısım çalışır, alt kısım YouTube'un kendi kontrollerine kalır.
 
-- Oynatıcı menüsünden seçtiğin kaliteyi hatırlar ve her videoya uygular. O kalite yoksa en yakın alt kalite kullanılır. Otomatik seçersen kayıt silinir.
-- İlerleme çubuğuna orta tık, imlecin altındaki bölümün (chapter) başına atlar.
-- Canlı yayınlarda küçük resme tıklayınca canlı yayının ucuna geçilir.
-- Kaydırmayı bırakınca ekrandaki videoların küçük resimleri arka planda yüklenir, böylece tıklanınca beliren resim anında görünür. Kapatmak için script'in başındaki `PRELOAD_THUMBNAILS` değerini `false` yap.
-- Oynatıcı katmanları yarı saydam yerine düz renk olur, arka plan bulanıklığı kaldırılır, ilerleme çubukları düz kırmızıdır.
+- Sol sütun: oynatma hızı, 0,25x ile 8x arası, 0,25'lik adımlarla. Tıklayınca 1x'e döner.
+- Orta sütun: 5 saniye ileri ya da geri sarar. Tıklayınca oynatır ya da duraklatır.
+- Sağ sütun: ses, %0 ile %300 arası, %5'lik adımlarla.
 
-**Notlar**
+Sadece video oynarken çalışır. Duraklatılmışsa scroll sayfayı normal kaydırır. Shorts'ta ve kanal tanıtım videolarında da çalışır.
 
-- Script, YouTube'un sayfa yapısına ve oynatıcı API'sine dayanır. YouTube bunları değiştirirse bir özellik çalışmayı bırakabilir. Böyle olursa lütfen bir issue aç.
-- Hata ayıklama günlüğü kapalıdır. Konsolda `[yt-stop-autoplay]` mesajlarını görmek için script'te `DEBUG` değerini `true` yap.
+%100 üstündeki ses, Web Audio API ile yapılan bir güçlendirmedir. 2x üstündeki hızlar doğrudan video elementine yazılır, çünkü YouTube'un kendi oynatıcısı 2x'te durur. Sesi ya da hızı YouTube'un kaydırıcısından, menüsünden veya klavye kısayollarından değiştirirsen script bunu fark eder ve oradan devam eder. Her yeni videoda hız 1x'e döner, %100 üstündeki güçlendirme de sıfırlanır.
+
+### Kalite
+
+Oynatıcının ayarlar menüsünden bir çözünürlüğü bir kez seç, script sonraki her videoda onu uygular. Seçimi ayrıca kilitler; böylece uyarlanabilir akış arabelleğe alırken kaliteyi sessizce değiştirmez. Videoda o çözünürlük yoksa onun altındaki en yüksek olanı kullanır. Otomatik'i seçersen kayıt silinir.
+
+### Bölümler (chapter)
+
+İlerleme çubuğuna orta tıkla, imlecin altındaki bölümün başına atlar. Sadece izleme sayfasında ve bölümü olan videolarda çalışır.
+
+### Küçük resim ön yüklemesi
+
+Kaydırmayı bıraktığında ekrandaki videoların tam boyutlu küçük resimleri arka planda indirilir. Böylece bir videoyu açınca oynatıcıdaki resim hemen görünür. İstemezsen script'in başındaki `PRELOAD_THUMBNAILS` değerini `false` yap.
+
+### Görünüm
+
+Script YouTube'un görünümünde de birkaç şey değiştirir. Yarı saydam oynatıcı katmanları düz renk olur, arka plan bulanıklığı kalkar, ilerleme çubukları düz kırmızıdır: oynatıcıda, küçük resimlerdeki izlendi çubuklarında ve sayfanın üstündeki yükleme çubuğunda. Bu, script'in başındaki `opaqueStyle` bloğudur. Yalnız autoplay kısmını istiyorsan bu bloğu ve hemen altındaki `appendChild(opaqueStyle)` satırını sil.
+
+YouTube sayfasını sık değiştirdiği için bir şey ara sıra bozulabilir. Olursa issue aç.
 
 ## Lisans
 

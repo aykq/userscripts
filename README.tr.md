@@ -28,6 +28,10 @@ Sadece video oynarken çalışır. Duraklatılmışsa scroll sayfayı normal kay
 
 Oynatıcının ayarlar menüsünden bir çözünürlüğü bir kez seç, script sonraki her videoda onu uygular. Seçimi ayrıca kilitler; böylece uyarlanabilir akış arabelleğe alırken kaliteyi sessizce değiştirmez. Videoda o çözünürlük yoksa onun altındaki en yüksek olanı kullanır. Otomatik'i seçersen kayıt silinir.
 
+### Tiyatro modu
+
+YouTube tiyatro modunu yalnız tarayıcı kapanana kadar hatırlar. Script bu seçimi kalıcı yapar; videolar en son hangi modda bıraktıysan o modda açılır.
+
 ### Bölümler (chapter)
 
 İlerleme çubuğuna orta tıkla, imlecin altındaki bölümün başına atlar. Sadece izleme sayfasında ve bölümü olan videolarda çalışır.

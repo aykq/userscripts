@@ -28,6 +28,10 @@ Volume above 100% is a gain boost through the Web Audio API. Speeds above 2x are
 
 Pick a resolution in the player's settings menu once and the script applies it to every video after that. It also locks the choice so adaptive streaming does not quietly change it while buffering. If a video does not have that resolution, the highest one below it is used. Picking Auto forgets the saved choice.
 
+### Theater mode
+
+YouTube keeps theater mode only until the browser is closed. The script makes it stick, so videos open in whichever mode you used last.
+
 ### Chapters
 
 Middle click on the progress bar to jump to the start of the chapter under the cursor. Watch pages only, and only for videos that have chapters.

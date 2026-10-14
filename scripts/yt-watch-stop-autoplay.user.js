@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Stop Autoplay + HQ Thumbnail
 // @namespace    https://github.com/aykq/userscripts
-// @version      1.19
+// @version      1.20
 // @description  Stops YouTube videos from autoplaying and shows a high quality thumbnail until you click. Adds scroll controls for volume (up to 300%), speed (0.25x-8x) and seeking, remembers your video quality, and jumps to chapter starts with a middle click on the progress bar.
 // @author       aykq
 // @license      MIT
@@ -20,6 +20,22 @@
     let playAllowed = false;
     let currentVideoId = null;
     let overlayEl = null;
+
+    const THEATER_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+    function persistTheaterCookie() {
+        const match = document.cookie.match(/(?:^|; )wide=([^;]*)/);
+        if (!match) return;
+        document.cookie = `wide=${match[1]}; domain=.youtube.com; path=/; max-age=${THEATER_COOKIE_MAX_AGE}; samesite=lax`;
+    }
+
+    persistTheaterCookie();
+    window.addEventListener('pagehide', persistTheaterCookie);
+    if (window.cookieStore) {
+        cookieStore.addEventListener('change', (event) => {
+            if (event.changed.some((c) => c.name === 'wide' && c.expires === null)) persistTheaterCookie();
+        });
+    }
 
     function isMainVideo(el) {
         return el instanceof HTMLMediaElement &&

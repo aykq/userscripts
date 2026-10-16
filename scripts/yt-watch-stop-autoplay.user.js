@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         YouTube Stop Autoplay + HQ Thumbnail
 // @namespace    https://github.com/aykq/userscripts
-// @version      1.20
-// @description  Stops YouTube videos from autoplaying and shows a high quality thumbnail until you click. Adds scroll controls for volume (up to 300%), speed (0.25x-8x) and seeking, remembers your video quality, and jumps to chapter starts with a middle click on the progress bar.
+// @version      1.21
+// @description  Stops YouTube videos from autoplaying and shows a high quality thumbnail until you click. Adds scroll controls for volume (up to 300%), speed (0.25x-8x) and seeking, remembers your video quality, and jumps to chapter starts with a middle click on the progress bar. Every mouse control and the look tweaks can be switched on or off from the userscript manager menu.
 // @author       aykq
 // @license      MIT
 // @homepageURL  https://github.com/aykq/userscripts
@@ -11,7 +11,10 @@
 // @updateURL    https://raw.githubusercontent.com/aykq/userscripts/main/scripts/yt-watch-stop-autoplay.user.js
 // @match        https://www.youtube.com/*
 // @run-at       document-start
-// @grant        none
+// @inject-into  page
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (function () {
@@ -47,14 +50,40 @@
         return !!(player && typeof player.getVideoData === 'function' && player.getVideoData().isLive);
     }
 
-    const opaqueStyle = document.createElement('style');
-    opaqueStyle.id = 'yt-stop-autoplay-opaque';
-    opaqueStyle.textContent = `
-        /* Opaque overlays and no backdrop blur, off by default. To turn it on, delete this line and the lone closing line below the last rule of this group.
+    const SETTING_LABELS = {
+        wheelSpeed: 'Scroll: playback speed (left column)',
+        wheelSeek: 'Scroll: seek (middle column)',
+        wheelVolume: 'Scroll: volume (right column)',
+        clickResetSpeed: 'Click: reset speed to 1x (left column)',
+        clickPlayPause: 'Click: play/pause (middle column)',
+        middleChapter: 'Middle click: jump to chapter start (progress bar)',
+        emptyClickToggle: 'Click on unused areas: play/pause (no YouTube icon)',
+        opaque: 'Opaque overlays',
+        noBlur: 'Remove blur',
+    };
+    const cfg = {
+        wheelSpeed: true, wheelSeek: true, wheelVolume: true,
+        clickResetSpeed: true, clickPlayPause: true, middleChapter: true,
+        emptyClickToggle: true, opaque: false, noBlur: false,
+        ...GM_getValue('cfg', {}),
+    };
+
+    function registerMenu() {
+        for (const key of Object.keys(SETTING_LABELS)) {
+            GM_registerMenuCommand(`${cfg[key] ? '✔' : '✖'} ${SETTING_LABELS[key]}`, () => {
+                cfg[key] = !cfg[key];
+                GM_setValue('cfg', cfg);
+                applyLook();
+                registerMenu();
+            }, { id: key, autoClose: false });
+        }
+    }
+    if (window === window.top) registerMenu();
+
+    const OPAQUE_CSS = `
         html { --yt-sys-color-baseline--overlay-background-medium-light: rgb(0,0,0) !important; --yt-sys-color-baseline--overlay-background-medium: rgb(0,0,0) !important; }
         html, [light] { --yt-frosted-glass-desktop: rgba(255,255,255,1) !important; }
         html[dark], [dark] { --yt-frosted-glass-desktop: rgba(15,15,15,1) !important; }
-        * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
         html[dark] #frosted-glass { background-color: rgb(15,15,15) !important; }
         html:not([dark]) #frosted-glass { background-color: rgb(255,255,255) !important; }
         .ytPlayerQuickActionButtonsHost,
@@ -63,7 +92,11 @@
         .ytTooltipContainerPlayerTooltipContentBlurred,
         .ytPlayerOverlayVideoDetailsRendererFrostedGlass { background-color: rgb(0,0,0) !important; }
         .ytChannelAttributionViewModelHost { background-color: rgb(40,40,40) !important; }
-        */
+    `;
+    const NO_BLUR_CSS = `
+        * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    `;
+    const RED_BARS_CSS = `
         html, [light], html[dark], [dark] { --yt-spec-red-indicator: #FF0000 !important; }
         .ytp-play-progress,
         .ytChapteredProgressBarChapteredPlayerBarChapterSeen,
@@ -77,6 +110,13 @@
         .ytp-scrubber-button,
         .ytProgressBarPlayheadProgressBarPlayheadDot { background-color: #FF0000 !important; }
     `;
+
+    const opaqueStyle = document.createElement('style');
+    opaqueStyle.id = 'yt-stop-autoplay-opaque';
+    function applyLook() {
+        opaqueStyle.textContent = (cfg.opaque ? OPAQUE_CSS : '') + (cfg.noBlur ? NO_BLUR_CSS : '') + RED_BARS_CSS;
+    }
+    applyLook();
     (document.head || document.documentElement).appendChild(opaqueStyle);
 
     const nativePlay = HTMLMediaElement.prototype.play;
@@ -390,13 +430,16 @@
         }
     }, true);
 
+    const SPEED_WHEEL = { setting: 'wheelSpeed', run: adjustPlaybackSpeed };
+    const SEEK_WHEEL = { setting: 'wheelSeek', run: seekVideo };
+    const VOLUME_WHEEL = { setting: 'wheelVolume', run: adjustVolume };
     const ZONE_HANDLERS = {
-        '0-0': adjustPlaybackSpeed,
-        '1-0': adjustPlaybackSpeed,
-        '0-1': seekVideo,
-        '1-1': seekVideo,
-        '0-2': adjustVolume,
-        '1-2': adjustVolume,
+        '0-0': SPEED_WHEEL,
+        '1-0': SPEED_WHEEL,
+        '0-1': SEEK_WHEEL,
+        '1-1': SEEK_WHEEL,
+        '0-2': VOLUME_WHEEL,
+        '1-2': VOLUME_WHEEL,
     };
 
     function getZoneKey(event, player) {
@@ -462,7 +505,10 @@
     }
 
     function resetPlaybackSpeed(event, player) {
-        if (player.getPlayerState() !== YT_PLAYER_STATE_PLAYING) return;
+        if (player.getPlayerState() !== YT_PLAYER_STATE_PLAYING) {
+            toggleWatchPlayback(event, player);
+            return;
+        }
 
         event.preventDefault();
         event.stopPropagation();
@@ -474,11 +520,13 @@
         showIndicator(player, '1x');
     }
 
+    const SPEED_CLICK = { setting: 'clickResetSpeed', run: resetPlaybackSpeed };
+    const PLAYPAUSE_CLICK = { setting: 'clickPlayPause', run: toggleWatchPlayback };
     const ZONE_CLICK_HANDLERS = {
-        '0-0': resetPlaybackSpeed,
-        '1-0': resetPlaybackSpeed,
-        '0-1': toggleWatchPlayback,
-        '1-1': toggleWatchPlayback,
+        '0-0': SPEED_CLICK,
+        '1-0': SPEED_CLICK,
+        '0-1': PLAYPAUSE_CLICK,
+        '1-1': PLAYPAUSE_CLICK,
     };
 
     function seekVideo(event, player) {
@@ -569,7 +617,10 @@
         if (!active) return null;
         const { player, video } = active;
 
-        if (event.target !== video) return null;
+        const target = event.target;
+        const onSurface = target === video || target === player ||
+            (target instanceof Element && target.matches('.ytp-iv-video-content, .ytp-iv-player-content'));
+        if (!onSurface) return null;
 
         const rect = player.getBoundingClientRect();
         const insidePlayer =
@@ -584,16 +635,20 @@
         const zone = resolveZone(event);
         if (!zone) return;
 
-        const handler = ZONE_HANDLERS[zone.zoneKey];
-        if (handler) handler(event, zone.player);
+        const entry = ZONE_HANDLERS[zone.zoneKey];
+        if (entry && cfg[entry.setting]) entry.run(event, zone.player);
     }, { passive: false, capture: true });
 
     window.addEventListener('click', (event) => {
         const zone = resolveZone(event);
         if (!zone) return;
 
-        const handler = ZONE_CLICK_HANDLERS[zone.zoneKey];
-        if (handler) handler(event, zone.player);
+        const entry = ZONE_CLICK_HANDLERS[zone.zoneKey];
+        if (!entry) {
+            if (cfg.emptyClickToggle) toggleWatchPlayback(event, zone.player);
+        } else if (cfg[entry.setting]) {
+            entry.run(event, zone.player);
+        }
     }, { capture: true });
 
     function findChapterStarts(node, seen = new Set()) {
@@ -616,7 +671,7 @@
     }
 
     window.addEventListener('mousedown', (event) => {
-        if (event.button !== 1) return;
+        if (event.button !== 1 || !cfg.middleChapter) return;
         if (!(event.target instanceof Element) || !event.target.closest('#movie_player .ytp-progress-bar-container')) return;
 
         const player = document.getElementById('movie_player');

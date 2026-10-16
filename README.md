@@ -14,13 +14,19 @@ YouTube starts playing a video on its own when you open a watch page, a Short or
 
 ### Scroll controls
 
-Scroll with the cursor over the video. The player is split into three columns and only the top two thirds are active, so the bottom part still belongs to YouTube's own controls.
+Scroll with the cursor over the video. The player is split into three columns and only the top two thirds react to scroll, so the bottom part still belongs to YouTube's own controls. The black bars beside a narrow video count as part of the player.
 
 - Left column: playback speed, 0.25x to 8x in steps of 0.25. Click to go back to 1x.
 - Middle column: seek 5 seconds forward or back. Click to play or pause.
 - Right column: volume from 0% to 300% in steps of 5.
 
-This only works while the video is playing. When it is paused, scrolling moves the page as usual. It also works on Shorts and on channel trailers.
+Scrolling only works while the video is playing. When it is paused, scrolling moves the page as usual. It also works on Shorts and on channel trailers.
+
+A click anywhere else on the video plays or pauses it, so the whole player behaves the same, and YouTube's own play/pause icon does not flash. In the left column a click on a paused video plays it.
+
+### Settings
+
+Open your userscript manager's menu on a YouTube tab (in Violentmonkey, click its toolbar icon). Under this script there is a switch for each scroll control, each click, the middle click on chapters, the click on unused areas, opaque overlays and blur removal. A tick means on. Changes apply right away and are remembered.
 
 Volume above 100% is a gain boost through the Web Audio API. Speeds above 2x are written straight to the video element, because YouTube's own player stops at 2x. If you change volume or speed with YouTube's slider, menu or keyboard shortcuts, the script notices and carries on from there. On every new video, speed goes back to 1x and any boost above 100% is dropped.
 
@@ -44,7 +50,7 @@ When you stop scrolling, the full-size thumbnails of the videos on screen are fe
 
 The progress bars are plain red: in the player, the watched bars on thumbnails and the loading bar at the top of the page.
 
-The script also has a block that makes YouTube's translucent player overlays solid and removes backdrop blur. It is switched off (commented out) by default. To turn it on, open the script, find the comment at the start of the `opaqueStyle` rules and delete it together with the lone closing line below that group of rules.
+Two optional tweaks are off by default and can be switched on in the menu: opaque overlays, which turn YouTube's translucent player overlays solid, and blur removal, which removes backdrop blur across the page.
 
 YouTube changes its page often, so something here may break now and then. If it does, open an issue.
 

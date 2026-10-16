@@ -14,13 +14,19 @@ YouTube bir izleme sayfasını, Shorts'u ya da kanal sayfasını açtığında v
 
 ### Scroll kontrolleri
 
-İmleç videonun üzerindeyken scroll yap. Oynatıcı üç sütuna bölünür ve yalnız üstteki üçte ikilik kısım çalışır, alt kısım YouTube'un kendi kontrollerine kalır.
+İmleç videonun üzerindeyken scroll yap. Oynatıcı üç sütuna bölünür ve scroll'a yalnız üstteki üçte ikilik kısım tepki verir, alt kısım YouTube'un kendi kontrollerine kalır. Dar bir videonun yanlarındaki siyah çubuklar da oynatıcının parçası sayılır.
 
 - Sol sütun: oynatma hızı, 0,25x ile 8x arası, 0,25'lik adımlarla. Tıklayınca 1x'e döner.
 - Orta sütun: 5 saniye ileri ya da geri sarar. Tıklayınca oynatır ya da duraklatır.
 - Sağ sütun: ses, %0 ile %300 arası, %5'lik adımlarla.
 
-Sadece video oynarken çalışır. Duraklatılmışsa scroll sayfayı normal kaydırır. Shorts'ta ve kanal tanıtım videolarında da çalışır.
+Scroll yalnız video oynarken çalışır. Duraklatılmışsa scroll sayfayı normal kaydırır. Shorts'ta ve kanal tanıtım videolarında da çalışır.
+
+Videonun geri kalan her yerine tıklamak da oynatır ya da duraklatır; böylece oynatıcının her noktası aynı davranır ve YouTube'un kendi oynat/duraklat simgesi çıkmaz. Sol sütunda duraklatılmış videoya tıklamak onu oynatır.
+
+### Ayarlar
+
+YouTube sekmesindeyken userscript yöneticisinin menüsünü aç (Violentmonkey'de araç çubuğundaki simgesine tıkla). Bu script'in altında her scroll kontrolü, her tıklama, bölümler için orta tık, kullanılmayan alanlara tıklama, opak katmanlar ve bulanıklık kaldırma için ayrı bir anahtar var. İşaret açık demektir. Değişiklikler hemen uygulanır ve hatırlanır.
 
 %100 üstündeki ses, Web Audio API ile yapılan bir güçlendirmedir. 2x üstündeki hızlar doğrudan video elementine yazılır, çünkü YouTube'un kendi oynatıcısı 2x'te durur. Sesi ya da hızı YouTube'un kaydırıcısından, menüsünden veya klavye kısayollarından değiştirirsen script bunu fark eder ve oradan devam eder. Her yeni videoda hız 1x'e döner, %100 üstündeki güçlendirme de sıfırlanır.
 
@@ -44,7 +50,7 @@ Kaydırmayı bıraktığında ekrandaki videoların tam boyutlu küçük resimle
 
 İlerleme çubukları düz kırmızıdır: oynatıcıda, küçük resimlerdeki izlendi çubuklarında ve sayfanın üstündeki yükleme çubuğunda.
 
-Script'te ayrıca YouTube'un yarı saydam oynatıcı katmanlarını düz renk yapan ve arka plan bulanıklığını kaldıran bir blok var. Varsayılan olarak kapalı (yorum satırında). Açmak için script'i aç, `opaqueStyle` kurallarının başındaki yorumu bul ve onu, o kural grubunun altındaki tek başına duran kapanış satırıyla birlikte sil.
+İki isteğe bağlı ayar varsayılan olarak kapalıdır ve menüden açılabilir: YouTube'un yarı saydam oynatıcı katmanlarını düz renk yapan opak katmanlar ve sayfadaki arka plan bulanıklığını kaldıran bulanıklık kaldırma.
 
 YouTube sayfasını sık değiştirdiği için bir şey ara sıra bozulabilir. Olursa issue aç.
 

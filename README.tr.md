@@ -26,7 +26,7 @@ Videonun geri kalan her yerine tıklamak da oynatır ya da duraklatır; böylece
 
 ### Ayarlar
 
-YouTube sekmesindeyken userscript yöneticisinin menüsünü aç (Violentmonkey'de araç çubuğundaki simgesine tıkla). Bu script'in altında her scroll kontrolü, her tıklama, bölümler için orta tık, kullanılmayan alanlara tıklama, opak katmanlar ve bulanıklık kaldırma için ayrı bir anahtar var. İşaret açık demektir. Değişiklikler hemen uygulanır ve hatırlanır.
+YouTube sekmesindeyken userscript yöneticisinin menüsünü aç (Violentmonkey'de araç çubuğundaki simgesine tıkla). Bu script'in altında her scroll kontrolü, her tıklama, bölümler için orta tık, kullanılmayan alanlara tıklama, opak katmanlar, bulanıklık kaldırma ve buffer seçenekleri için ayrı bir anahtar var. İşaret açık demektir. Değişiklikler hemen uygulanır ve hatırlanır.
 
 %100 üstündeki ses, Web Audio API ile yapılan bir güçlendirmedir. 2x üstündeki hızlar doğrudan video elementine yazılır, çünkü YouTube'un kendi oynatıcısı 2x'te durur. Sesi ya da hızı YouTube'un kaydırıcısından, menüsünden veya klavye kısayollarından değiştirirsen script bunu fark eder ve oradan devam eder. Her yeni videoda hız 1x'e döner, %100 üstündeki güçlendirme de sıfırlanır.
 
@@ -41,6 +41,14 @@ YouTube tiyatro modunu yalnız tarayıcı kapanana kadar hatırlar. Script bu se
 ### Bölümler (chapter)
 
 İlerleme çubuğuna orta tıkla, imlecin altındaki bölümün başına atlar. Sadece izleme sayfasında ve bölümü olan videolarda çalışır.
+
+### Buffer
+
+YouTube'un oynatıcısı oynatma noktasının ilerisinde yalnızca kısa bir kısmı önceden okur: 1080p'de yaklaşık 40 saniye, daha yüksek çözünürlüklerde daha az. Script bu sınırı yükseltir; buffer daha ileri uzanır ve bir iki dakika ileri atlamak akıcı kalır. 1080p'de yaklaşık iki dakikaya ulaşır. YouTube'un sunucusu bundan fazlasını göndermez, yani iki dakika tavandır. Yüksek çözünürlükler video saniyesi başına daha çok bellek istediği için daha erken durur.
+
+Chromium tabanlı tarayıcılar video buffer'ını varsayılan olarak yaklaşık 150 MB ile sınırlar. 1440p ve 4K için tarayıcıyı `--mse-video-buffer-size-limit-mb=512` parametresiyle başlatıp menüden "daha yüksek bellek kotası" seçeneğini açabilirsin. Parametre yoksa bu seçeneği kapalı bırak, yoksa 4K'da buffer dolunca takılma olabilir. Açıkken sekme daha çok bellek kullanır.
+
+Bu özellik deneyseldir. YouTube'un oynatıcısındaki bir değeri değiştirerek çalışır; script bu değeri oynatıcının kodunu okuyarak bulur, bu yüzden bir YouTube güncellemesi onu durdurabilir. Menü satırının sonunda durumu köşeli parantezle yazar: searching, ready, active ya da field not found. Bir şey tuhaf görünürse kapat.
 
 ### Küçük resim ön yüklemesi
 

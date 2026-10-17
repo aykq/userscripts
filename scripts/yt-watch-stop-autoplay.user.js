@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         YouTube Stop Autoplay + HQ Thumbnail
 // @namespace    https://github.com/aykq/userscripts
-// @version      1.21
-// @description  Stops YouTube videos from autoplaying and shows a high quality thumbnail until you click. Adds scroll controls for volume (up to 300%), speed (0.25x-8x) and seeking, remembers your video quality, and jumps to chapter starts with a middle click on the progress bar. Every mouse control and the look tweaks can be switched on or off from the userscript manager menu.
+// @version      1.22
+// @description  Stops YouTube videos from autoplaying and shows a high quality thumbnail until you click. Adds scroll controls for volume (up to 300%), speed (0.25x-8x) and seeking, remembers your video quality, and jumps to chapter starts with a middle click on the progress bar. Can raise YouTube's read-ahead buffer to about two minutes. Every mouse control, the look tweaks and the buffer option can be switched on or off from the userscript manager menu.
 // @author       aykq
 // @license      MIT
 // @homepageURL  https://github.com/aykq/userscripts
@@ -60,17 +60,23 @@
         emptyClickToggle: 'Click on unused areas: play/pause (no YouTube icon)',
         opaque: 'Opaque overlays',
         noBlur: 'Remove blur',
+        bufferBoost: 'Buffer: read further ahead (experimental)',
+        bufferHighQuota: 'Buffer: higher memory quota (needs the browser flag, see README)',
     };
     const cfg = {
         wheelSpeed: true, wheelSeek: true, wheelVolume: true,
         clickResetSpeed: true, clickPlayPause: true, middleChapter: true,
         emptyClickToggle: true, opaque: false, noBlur: false,
+        bufferBoost: true, bufferHighQuota: false,
         ...GM_getValue('cfg', {}),
     };
 
+    let bufferStatus = 'searching';
+
     function registerMenu() {
         for (const key of Object.keys(SETTING_LABELS)) {
-            GM_registerMenuCommand(`${cfg[key] ? '✔' : '✖'} ${SETTING_LABELS[key]}`, () => {
+            const suffix = key === 'bufferBoost' ? ` [${bufferStatus}]` : '';
+            GM_registerMenuCommand(`${cfg[key] ? '✔' : '✖'} ${SETTING_LABELS[key]}${suffix}`, () => {
                 cfg[key] = !cfg[key];
                 GM_setValue('cfg', cfg);
                 applyLook();
@@ -78,7 +84,109 @@
             }, { id: key, autoClose: false });
         }
     }
+
+    function setBufferStatus(next) {
+        if (bufferStatus === next) return;
+        bufferStatus = next;
+        if (window === window.top) registerMenu();
+    }
+
     if (window === window.top) registerMenu();
+
+    const BUFFER_DEFAULT_BYTES = 20971520;
+    const BUFFER_PROFILES = {
+        normal: { multiplier: 6, maxBytes: 134217728 },
+        high: { multiplier: 8, maxBytes: 301989888 },
+    };
+    const BUFFER_FIELD_FALLBACK = 'xT';
+    const BUFFER_FIELD_PATTERNS = [
+        /this\.([A-Za-z_$][\w$]*)=20971520;this\.[A-Za-z_$][\w$]*=8388608;this\.[A-Za-z_$][\w$]*=120;/,
+        /this\.([A-Za-z_$][\w$]*)=20971520;this\.[A-Za-z_$][\w$]*=8388608;/,
+        /this\.([A-Za-z_$][\w$]*)=20971520;/g,
+    ];
+    let bufferTrapName = null;
+
+    function scaleBufferBytes(raw) {
+        const profile = cfg.bufferHighQuota ? BUFFER_PROFILES.high : BUFFER_PROFILES.normal;
+        return Math.max(raw, Math.min(raw * profile.multiplier, profile.maxBytes));
+    }
+
+    function removeBufferTrap() {
+        if (bufferTrapName) delete Object.prototype[bufferTrapName];
+        bufferTrapName = null;
+    }
+
+    function installBufferTrap(name) {
+        if (bufferTrapName === name) return;
+        removeBufferTrap();
+        bufferTrapName = name;
+        Object.defineProperty(Object.prototype, name, {
+            configurable: true,
+            enumerable: false,
+            get() { return undefined; },
+            set(value) {
+                if (value === BUFFER_DEFAULT_BYTES) {
+                    let raw = value;
+                    Object.defineProperty(this, name, {
+                        configurable: true,
+                        enumerable: true,
+                        get() { return cfg.bufferBoost ? scaleBufferBytes(raw) : raw; },
+                        set(next) { raw = next; },
+                    });
+                    setBufferStatus('active');
+                } else {
+                    Object.defineProperty(this, name, { configurable: true, enumerable: true, writable: true, value });
+                }
+            },
+        });
+        if (bufferStatus !== 'active') setBufferStatus('ready');
+    }
+
+    function findBufferField(source) {
+        for (const pattern of BUFFER_FIELD_PATTERNS) {
+            if (pattern.global) {
+                const all = [...source.matchAll(pattern)];
+                if (all.length === 1) return all[0][1];
+            } else {
+                const found = source.match(pattern);
+                if (found) return found[1];
+            }
+        }
+        return null;
+    }
+
+    async function discoverBufferField() {
+        const path = window.ytcfg?.get?.('PLAYER_JS_URL') || document.querySelector('script[src*="/base.js"]')?.getAttribute('src');
+        if (!path) return false;
+        const hash = path.match(/\/s\/player\/([^/]+)\//)?.[1];
+        if (!hash) return false;
+        const known = GM_getValue('bufferField', null);
+        if (known && known.hash === hash) {
+            if (!known.name) setBufferStatus('field not found');
+            return true;
+        }
+        try {
+            const name = findBufferField(await (await fetch(path)).text());
+            GM_setValue('bufferField', { hash, name });
+            if (name) {
+                installBufferTrap(name);
+            } else {
+                removeBufferTrap();
+                setBufferStatus('field not found');
+            }
+        } catch (error) {}
+        return true;
+    }
+
+    const cachedBufferField = GM_getValue('bufferField', null);
+    if (!cachedBufferField) installBufferTrap(BUFFER_FIELD_FALLBACK);
+    else if (cachedBufferField.name) installBufferTrap(cachedBufferField.name);
+    let bufferDiscoveryTries = 0;
+    (function pollBufferDiscovery() {
+        discoverBufferField().then((done) => {
+            if (!done && ++bufferDiscoveryTries < 60) setTimeout(pollBufferDiscovery, 250);
+        });
+    })();
 
     const OPAQUE_CSS = `
         html { --yt-sys-color-baseline--overlay-background-medium-light: rgb(0,0,0) !important; --yt-sys-color-baseline--overlay-background-medium: rgb(0,0,0) !important; }
@@ -346,11 +454,30 @@
         return Math.min(MAX_VOLUME_PERCENT, Math.max(0, next));
     }
 
+    function persistVolume(percent) {
+        const volume = Math.min(100, Math.round(percent));
+        const now = Date.now();
+        const write = (storage, withExpiry) => {
+            try {
+                const raw = storage.getItem('yt-player-volume');
+                const stored = raw ? JSON.parse(raw) : null;
+                const data = stored && stored.data ? JSON.parse(stored.data) : { muted: false };
+                data.volume = volume;
+                const entry = { data: JSON.stringify(data), creation: (stored && stored.creation) || now };
+                if (withExpiry) entry.expiration = (stored && stored.expiration) || now + 2592000000;
+                storage.setItem('yt-player-volume', JSON.stringify(entry));
+            } catch (e) {}
+        };
+        write(localStorage, true);
+        write(sessionStorage, false);
+    }
+
     function applyVolumePercent(player, video, percent) {
         const nativeVolume = Math.min(100, percent);
         if (player.getVolume() !== nativeVolume) {
             player.setVolume(nativeVolume);
         }
+        persistVolume(nativeVolume);
 
         if (percent > 100) {
             tryEnsureAudioGraph(video);

@@ -26,7 +26,7 @@ A click anywhere else on the video plays or pauses it, so the whole player behav
 
 ### Settings
 
-Open your userscript manager's menu on a YouTube tab (in Violentmonkey, click its toolbar icon). Under this script there is a switch for each scroll control, each click, the middle click on chapters, the click on unused areas, opaque overlays and blur removal. A tick means on. Changes apply right away and are remembered.
+Open your userscript manager's menu on a YouTube tab (in Violentmonkey, click its toolbar icon). Under this script there is a switch for each scroll control, each click, the middle click on chapters, the click on unused areas, opaque overlays, blur removal and the buffer options. A tick means on. Changes apply right away and are remembered.
 
 Volume above 100% is a gain boost through the Web Audio API. Speeds above 2x are written straight to the video element, because YouTube's own player stops at 2x. If you change volume or speed with YouTube's slider, menu or keyboard shortcuts, the script notices and carries on from there. On every new video, speed goes back to 1x and any boost above 100% is dropped.
 
@@ -41,6 +41,14 @@ YouTube keeps theater mode only until the browser is closed. The script makes it
 ### Chapters
 
 Middle click on the progress bar to jump to the start of the chapter under the cursor. Watch pages only, and only for videos that have chapters.
+
+### Buffer
+
+YouTube's player only reads a short stretch of video ahead of the playhead, around 40 seconds at 1080p and less at higher resolutions. The script raises that limit, so the buffer grows further and jumping a minute or two ahead stays smooth. At 1080p it reaches about two minutes. YouTube's server does not send more than that, so two minutes is the ceiling. Higher resolutions need more memory per second of video, so they stop earlier.
+
+Chromium based browsers cap the video buffer at about 150 MB by default. For 1440p and 4K you can start the browser with `--mse-video-buffer-size-limit-mb=512` and switch on "higher memory quota" in the menu. Without the flag leave that option off, otherwise 4K can stall once the buffer is full. The tab uses more memory while it is on.
+
+This is experimental. It works by changing a value inside YouTube's player that the script finds by reading the player's code, so a YouTube update can stop it. The menu line shows its state in brackets: searching, ready, active or field not found. Switch it off if anything looks odd.
 
 ### Thumbnail preloading
 

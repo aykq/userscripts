@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Stop Autoplay + HQ Thumbnail
 // @namespace    https://github.com/aykq/userscripts
-// @version      1.22
+// @version      1.23
 // @description  Stops YouTube videos from autoplaying and shows a high quality thumbnail until you click. Adds scroll controls for volume (up to 300%), speed (0.25x-8x) and seeking, remembers your video quality, and jumps to chapter starts with a middle click on the progress bar. Can raise YouTube's read-ahead buffer to about two minutes. Every mouse control, the look tweaks and the buffer option can be switched on or off from the userscript manager menu.
 // @author       aykq
 // @license      MIT
@@ -587,12 +587,37 @@
 
     const PLAYBACK_RATE_STEP = 0.25;
 
+    let ytRateWhenForced = null;
+
     function applyPlaybackRate(player, video, rate) {
         if (rate <= 2) {
             player.setPlaybackRate(rate);
+            ytRateWhenForced = null;
+        } else {
+            ytRateWhenForced = player.getPlaybackRate();
         }
         video.playbackRate = rate;
     }
+
+    const rateGuardedVideos = new WeakSet();
+
+    function guardPlaybackRate(video) {
+        if (rateGuardedVideos.has(video)) return;
+        rateGuardedVideos.add(video);
+        video.addEventListener('ratechange', () => {
+            if (desiredPlaybackRate <= 2 || video.playbackRate === desiredPlaybackRate) return;
+            const active = findActivePlayer();
+            if (active && active.player.getPlaybackRate() !== ytRateWhenForced) {
+                desiredPlaybackRate = video.playbackRate;
+                ytRateWhenForced = null;
+                return;
+            }
+            video.playbackRate = desiredPlaybackRate;
+        });
+    }
+
+    const SPEED_WHEEL_MIN_INTERVAL_MS = 80;
+    let lastSpeedWheelAt = 0;
 
     function syncPlaybackRateFromVideo(video) {
         const live = video.playbackRate;
@@ -616,6 +641,10 @@
 
         event.preventDefault();
         event.stopPropagation();
+
+        const now = performance.now();
+        if (now - lastSpeedWheelAt < SPEED_WHEEL_MIN_INTERVAL_MS) return;
+        lastSpeedWheelAt = now;
 
         const video = player.querySelector('video.html5-main-video');
         if (!video) return;
@@ -642,6 +671,7 @@
 
         const video = player.querySelector('video.html5-main-video');
         desiredPlaybackRate = 1;
+        ytRateWhenForced = null;
         player.setPlaybackRate(1);
         if (video) video.playbackRate = 1;
         showIndicator(player, '1x');
@@ -834,12 +864,10 @@
             if (gainNode) gainNode.gain.value = 1;
 
             desiredPlaybackRate = 1;
+            ytRateWhenForced = null;
+            if (typeof player.setPlaybackRate === 'function') player.setPlaybackRate(1);
             video.playbackRate = 1;
-            video.addEventListener('ratechange', () => {
-                if (desiredPlaybackRate > 2 && video.playbackRate !== desiredPlaybackRate) {
-                    video.playbackRate = desiredPlaybackRate;
-                }
-            });
+            guardPlaybackRate(video);
         }, 100);
 
         setTimeout(() => clearInterval(waitForPlayer), 15000);

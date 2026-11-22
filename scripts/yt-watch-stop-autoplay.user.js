@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Stop Autoplay + HQ Thumbnail
 // @namespace    https://github.com/aykq/userscripts
-// @version      1.23
+// @version      1.24
 // @description  Stops YouTube videos from autoplaying and shows a high quality thumbnail until you click. Adds scroll controls for volume (up to 300%), speed (0.25x-8x) and seeking, remembers your video quality, and jumps to chapter starts with a middle click on the progress bar. Can raise YouTube's read-ahead buffer to about two minutes. Every mouse control, the look tweaks and the buffer option can be switched on or off from the userscript manager menu.
 // @author       aykq
 // @license      MIT
@@ -98,28 +98,22 @@
         normal: { multiplier: 6, maxBytes: 134217728 },
         high: { multiplier: 8, maxBytes: 301989888 },
     };
-    const BUFFER_FIELD_FALLBACK = 'xT';
+    const BUFFER_FIELD_FALLBACKS = ['xa', 'Ha'];
     const BUFFER_FIELD_PATTERNS = [
         /this\.([A-Za-z_$][\w$]*)=20971520;this\.[A-Za-z_$][\w$]*=8388608;this\.[A-Za-z_$][\w$]*=120;/,
         /this\.([A-Za-z_$][\w$]*)=20971520;this\.[A-Za-z_$][\w$]*=8388608;/,
         /this\.([A-Za-z_$][\w$]*)=20971520;/g,
     ];
-    let bufferTrapName = null;
+    const bufferTrapNames = new Set();
 
     function scaleBufferBytes(raw) {
         const profile = cfg.bufferHighQuota ? BUFFER_PROFILES.high : BUFFER_PROFILES.normal;
         return Math.max(raw, Math.min(raw * profile.multiplier, profile.maxBytes));
     }
 
-    function removeBufferTrap() {
-        if (bufferTrapName) delete Object.prototype[bufferTrapName];
-        bufferTrapName = null;
-    }
-
     function installBufferTrap(name) {
-        if (bufferTrapName === name) return;
-        removeBufferTrap();
-        bufferTrapName = name;
+        if (bufferTrapNames.has(name)) return;
+        bufferTrapNames.add(name);
         Object.defineProperty(Object.prototype, name, {
             configurable: true,
             enumerable: false,
@@ -155,32 +149,47 @@
         return null;
     }
 
+    function readBufferCache() {
+        const cache = GM_getValue('bufferFields', null);
+        if (cache && cache.variants && Array.isArray(cache.previous)) return cache;
+        return { hash: null, variants: {}, previous: [] };
+    }
+
+    function markBufferFieldMissing() {
+        if (bufferStatus !== 'active') setBufferStatus('field not found');
+    }
+
     async function discoverBufferField() {
         const path = window.ytcfg?.get?.('PLAYER_JS_URL') || document.querySelector('script[src*="/base.js"]')?.getAttribute('src');
         if (!path) return false;
-        const hash = path.match(/\/s\/player\/([^/]+)\//)?.[1];
-        if (!hash) return false;
-        const known = GM_getValue('bufferField', null);
-        if (known && known.hash === hash) {
-            if (!known.name) setBufferStatus('field not found');
+        const match = path.match(/\/s\/player\/([^/]+)\/([^/]+)\//);
+        if (!match) return false;
+        const [, hash, variant] = match;
+        const known = readBufferCache();
+        if (known.hash === hash && variant in known.variants) {
+            if (!known.variants[variant]) markBufferFieldMissing();
             return true;
         }
         try {
             const name = findBufferField(await (await fetch(path)).text());
-            GM_setValue('bufferField', { hash, name });
-            if (name) {
-                installBufferTrap(name);
-            } else {
-                removeBufferTrap();
-                setBufferStatus('field not found');
+            const cache = readBufferCache();
+            if (cache.hash !== hash) {
+                const old = Object.values(cache.variants).filter(Boolean);
+                if (old.length) cache.previous = old;
+                cache.hash = hash;
+                cache.variants = {};
             }
+            cache.variants[variant] = name;
+            GM_setValue('bufferFields', cache);
+            if (name) installBufferTrap(name);
+            else markBufferFieldMissing();
         } catch (error) {}
         return true;
     }
 
-    const cachedBufferField = GM_getValue('bufferField', null);
-    if (!cachedBufferField) installBufferTrap(BUFFER_FIELD_FALLBACK);
-    else if (cachedBufferField.name) installBufferTrap(cachedBufferField.name);
+    const startCache = readBufferCache();
+    const startNames = [...Object.values(startCache.variants).filter(Boolean), ...startCache.previous];
+    for (const name of new Set(startNames.length ? startNames : BUFFER_FIELD_FALLBACKS)) installBufferTrap(name);
     let bufferDiscoveryTries = 0;
     (function pollBufferDiscovery() {
         discoverBufferField().then((done) => {

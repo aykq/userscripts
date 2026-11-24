@@ -8,6 +8,7 @@ Userscript'lerim.
 
 - [YouTube Stop Autoplay + HQ Thumbnail](#youtube-stop-autoplay--hq-thumbnail)
 - [Better Native Video](#better-native-video)
+- [Kick Player Controls](#kick-player-controls)
 
 ## YouTube Stop Autoplay + HQ Thumbnail
 
@@ -75,6 +76,22 @@ Tarayıcı bir video dosyasını doğrudan oynattığında ya da sayfa tarayıc�
 - Zaman çubuğunun üstünde tekerlek: her çentikte 10 saniye, Shift ile 30. Yukarı kaydırmak ileri sarar.
 
 Her sitede çalışır ama yalnız tarayıcının kendi kontrollerini gösteren videolara dokunur; kendi kontrolleri olan oynatıcılar (YouTube, Twitch vb.) etkilenmez. Userscript yöneticisinin dosya URL'lerine erişimine izin verdiysen yerel dosyalarda da çalışır.
+
+## Kick Player Controls
+
+[Kur](https://raw.githubusercontent.com/aykq/userscripts/main/scripts/kick-player-controls.user.js)
+
+kick.com'daki oynatıcı için fare ve klavye kontrolleri.
+
+- Oynatıcının üstünde tekerlek: ses %5'lik adımlarla artar ya da azalır. Sessizdeyken yukarı kaydırmak sesi açar.
+- Oynatıcıya orta tık ya da M: sesi kapatır ya da açar.
+- Ses kaydırıcısı ve yüzdesi sessiz düğmesinin yanında hep görünür.
+- VOD'larda sol ve sağ ok 10 saniye sarar. Kick'in kendi varsayılanı geri 10, ileri 30.
+- VOD'larda zaman çubuğunun üstünde tekerlek her çentikte 10 saniye, Shift ile 30 saniye sarar.
+
+Kick sayfasını ara sıra değiştirir. Bir kontrol çalışmayı bırakırsa issue aç.
+
+Tekerlekle ses, orta tıkla sessiz ve hep görünen kaydırıcı, Pabli'nin MIT lisanslı [Kick Volume Wheel Control](https://greasyfork.org/scripts/517942) scriptine dayanır.
 
 ## Lisans
 

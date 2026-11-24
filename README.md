@@ -8,6 +8,7 @@ You need [Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](htt
 
 - [YouTube Stop Autoplay + HQ Thumbnail](#youtube-stop-autoplay--hq-thumbnail)
 - [Better Native Video](#better-native-video)
+- [Kick Player Controls](#kick-player-controls)
 
 ## YouTube Stop Autoplay + HQ Thumbnail
 
@@ -75,6 +76,22 @@ When a browser plays a video file directly, or a page uses the browser's built-i
 - Mouse wheel over the timeline: 10 seconds per notch, 30 with Shift. Scrolling up goes forward.
 
 It runs on every site but only touches videos that show the browser's own controls, so players with custom controls (YouTube, Twitch and the like) are left alone. It also works on local files if your userscript manager is allowed to access file URLs.
+
+## Kick Player Controls
+
+[Install](https://raw.githubusercontent.com/aykq/userscripts/main/scripts/kick-player-controls.user.js)
+
+Mouse and keyboard controls for the player on kick.com.
+
+- Mouse wheel over the player: volume up or down in steps of 5%. Scrolling up while muted unmutes.
+- Middle click on the player or M: mute or unmute.
+- The volume slider and its percentage stay visible next to the mute button.
+- On VODs, Left and Right arrows seek 10 seconds. Kick's own default is 10 back and 30 forward.
+- On VODs, the wheel over the timeline seeks 10 seconds per notch, 30 with Shift.
+
+Kick changes its page from time to time. If a control stops working, open an issue.
+
+The volume wheel, middle click mute and always visible slider are based on [Kick Volume Wheel Control](https://greasyfork.org/scripts/517942) by Pabli, released under the MIT License.
 
 ## License
 

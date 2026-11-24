@@ -2,13 +2,16 @@
 
 [Türkçe](README.tr.md)
 
-My userscripts. There is one for now.
+My userscripts.
+
+You need [Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](https://www.tampermonkey.net/). Click an install link, confirm the dialog, and the script updates itself from then on.
+
+- [YouTube Stop Autoplay + HQ Thumbnail](#youtube-stop-autoplay--hq-thumbnail)
+- [Better Native Video](#better-native-video)
 
 ## YouTube Stop Autoplay + HQ Thumbnail
 
 [Install](https://raw.githubusercontent.com/aykq/userscripts/main/scripts/yt-watch-stop-autoplay.user.js)
-
-You need [Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](https://www.tampermonkey.net/). Click the link, confirm the dialog, and it updates itself from then on.
 
 YouTube starts playing a video on its own when you open a watch page, a Short or a channel page, and when a playlist moves on to the next one. This script stops that. The player shows the video's thumbnail in full quality, and the video only starts when you click. Clicking a suggested video works the same way, the next one waits for a click too. Since nothing plays by itself, nothing lands in your watch history by itself either. Hover previews on the home page and in search are left alone. On a live stream, the click takes you to the live edge instead of the start of the DVR window.
 
@@ -61,6 +64,17 @@ The progress bars are plain red: in the player, the watched bars on thumbnails a
 Two optional tweaks are off by default and can be switched on in the menu: opaque overlays, which turn YouTube's translucent player overlays solid, and blur removal, which removes backdrop blur across the page.
 
 YouTube changes its page often, so something here may break now and then. If it does, open an issue.
+
+## Better Native Video
+
+[Install](https://raw.githubusercontent.com/aykq/userscripts/main/scripts/better-native-video.user.js)
+
+When a browser plays a video file directly, or a page uses the browser's built-in video controls, the arrow keys jump by a small percentage of the video. This script makes them jump 10 seconds instead.
+
+- Left and Right arrows: 10 seconds back or forward. Hold Shift for 30 seconds.
+- Mouse wheel over the timeline: 10 seconds per notch, 30 with Shift. Scrolling up goes forward.
+
+It runs on every site but only touches videos that show the browser's own controls, so players with custom controls (YouTube, Twitch and the like) are left alone. It also works on local files if your userscript manager is allowed to access file URLs.
 
 ## License
 

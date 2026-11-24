@@ -2,13 +2,16 @@
 
 [English](README.md)
 
-Userscript'lerim. Şimdilik bir tane var.
+Userscript'lerim.
+
+[Violentmonkey](https://violentmonkey.github.io/) ya da [Tampermonkey](https://www.tampermonkey.net/) lazım. Bir kurulum bağlantısına tıkla, açılan pencerede onayla; script sonrasında kendini günceller.
+
+- [YouTube Stop Autoplay + HQ Thumbnail](#youtube-stop-autoplay--hq-thumbnail)
+- [Better Native Video](#better-native-video)
 
 ## YouTube Stop Autoplay + HQ Thumbnail
 
 [Kur](https://raw.githubusercontent.com/aykq/userscripts/main/scripts/yt-watch-stop-autoplay.user.js)
-
-[Violentmonkey](https://violentmonkey.github.io/) ya da [Tampermonkey](https://www.tampermonkey.net/) lazım. Bağlantıya tıkla, açılan pencerede kurulumu onayla; sonrasında kendini günceller.
 
 YouTube bir izleme sayfasını, Shorts'u ya da kanal sayfasını açtığında videoyu kendi başlatır, playlist'te de sıradakine kendi geçer. Bu script bunu durdurur. Oynatıcıda videonun küçük resmi tam kalitede görünür, video sen tıklayınca başlar. Önerilen bir videoya tıkladığında da aynısı olur, sıradaki video da tıklamanı bekler. Hiçbir şey kendi kendine oynamadığı için izleme geçmişine de kendi kendine bir şey düşmez. Ana sayfada ve aramada üzerine gelince açılan önizlemelere dokunulmaz. Canlı yayında tıklama, DVR penceresinin başına değil canlı yayının ucuna götürür.
 
@@ -61,6 +64,17 @@ Kaydırmayı bıraktığında ekrandaki videoların tam boyutlu küçük resimle
 İki isteğe bağlı ayar varsayılan olarak kapalıdır ve menüden açılabilir: YouTube'un yarı saydam oynatıcı katmanlarını düz renk yapan opak katmanlar ve sayfadaki arka plan bulanıklığını kaldıran bulanıklık kaldırma.
 
 YouTube sayfasını sık değiştirdiği için bir şey ara sıra bozulabilir. Olursa issue aç.
+
+## Better Native Video
+
+[Kur](https://raw.githubusercontent.com/aykq/userscripts/main/scripts/better-native-video.user.js)
+
+Tarayıcı bir video dosyasını doğrudan oynattığında ya da sayfa tarayıcının yerleşik video kontrollerini kullandığında ok tuşları videonun küçük bir yüzdesi kadar atlar. Bu script onları 10 saniye atlatır.
+
+- Sol ve sağ ok: 10 saniye geri ya da ileri. Shift basılıyken 30 saniye.
+- Zaman çubuğunun üstünde tekerlek: her çentikte 10 saniye, Shift ile 30. Yukarı kaydırmak ileri sarar.
+
+Her sitede çalışır ama yalnız tarayıcının kendi kontrollerini gösteren videolara dokunur; kendi kontrolleri olan oynatıcılar (YouTube, Twitch vb.) etkilenmez. Userscript yöneticisinin dosya URL'lerine erişimine izin verdiysen yerel dosyalarda da çalışır.
 
 ## Lisans
 

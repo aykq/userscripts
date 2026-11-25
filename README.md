@@ -44,7 +44,7 @@ YouTube keeps theater mode only until the browser is closed. The script makes it
 
 ### Chapters
 
-Middle click on the progress bar to jump to the start of the chapter under the cursor. Watch pages only, and only for videos that have chapters.
+Middle click on the progress bar to jump to the start of the chapter under the cursor. Watch pages only, and only for videos that have chapters, either YouTube's own or the ones the SponsorBlock extension shows on the bar.
 
 ### Buffer
 

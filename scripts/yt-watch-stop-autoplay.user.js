@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Stop Autoplay + HQ Thumbnail
 // @namespace    https://github.com/aykq/userscripts
-// @version      1.24
+// @version      1.25
 // @description  Stops YouTube videos from autoplaying and shows a high quality thumbnail until you click. Adds scroll controls for volume (up to 300%), speed (0.25x-8x) and seeking, remembers your video quality, and jumps to chapter starts with a middle click on the progress bar. Can raise YouTube's read-ahead buffer to about two minutes. Every mouse control, the look tweaks and the buffer option can be switched on or off from the userscript manager menu.
 // @author       aykq
 // @license      MIT
@@ -836,6 +836,21 @@
         return findChapterStarts(data);
     }
 
+    function getSponsorBlockStarts(player) {
+        const chapterBar = player.querySelector('.sponsorBlockChapterBar');
+        if (!chapterBar || chapterBar.style.display === 'none') return null;
+        const sections = [...chapterBar.querySelectorAll('.ytp-chapter-hover-container[decimal-width]')];
+        if (sections.length < 2) return null;
+
+        const duration = player.getDuration();
+        let passed = 0;
+        return sections.map((section) => {
+            const start = passed * duration;
+            passed += Number(section.getAttribute('decimal-width'));
+            return start;
+        });
+    }
+
     window.addEventListener('mousedown', (event) => {
         if (event.button !== 1 || !cfg.middleChapter) return;
         if (!(event.target instanceof Element) || !event.target.closest('#movie_player .ytp-progress-bar-container')) return;
@@ -843,7 +858,7 @@
         const player = document.getElementById('movie_player');
         const bar = player && player.querySelector('.ytp-progress-bar');
         if (!bar || typeof player.seekTo !== 'function') return;
-        const starts = getChapterStarts(player);
+        const starts = getChapterStarts(player) || getSponsorBlockStarts(player);
         if (!starts || !starts.length) return;
 
         event.preventDefault();

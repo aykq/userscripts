@@ -44,7 +44,7 @@ YouTube tiyatro modunu yalnız tarayıcı kapanana kadar hatırlar. Script bu se
 
 ### Bölümler (chapter)
 
-İlerleme çubuğuna orta tıkla, imlecin altındaki bölümün başına atlar. Sadece izleme sayfasında ve bölümü olan videolarda çalışır.
+İlerleme çubuğuna orta tıkla, imlecin altındaki bölümün başına atlar. Sadece izleme sayfasında ve bölümü olan videolarda çalışır: YouTube'un kendi bölümleri ya da SponsorBlock eklentisinin çubukta gösterdikleri.
 
 ### Buffer
 
